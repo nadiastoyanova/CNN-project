@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-a: #fff3d9;
+      --bg-b: #d5f7f2;
+      --accent-a: #f97316;
+      --accent-b: #14b8a6;
+      --ink: #0f172a;
+    }
+
+    body {
+      font-family: "Space Grotesk", sans-serif;
+      background: radial-gradient(circle at 15% 20%, #fff8ea, transparent 35%),
+                  radial-gradient(circle at 80% 85%, #c9f2f1, transparent 40%),
+                  linear-gradient(135deg, var(--bg-a), var(--bg-b));
+    }
+
+    .funny-title {
+      font-family: "Fredoka", sans-serif;
+    }
+
+    .robot {
+      animation: bob 2s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .robot-eyes {
+      animation: blink 3.2s infinite;
+      transform-origin: center;
+    }
+
+    .robot-antenna {
+      animation: wiggle 0.9s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+
+    .right-panel {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-scene {
+      display: none;
+      width: 22rem;
+      max-width: 90%;
+      height: 19rem;
+      position: relative;
+    }
+
+    .massage-bed {
+      position: absolute;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18rem;
+      height: 5rem;
+      border: 4px solid #0f172a;
+      border-radius: 1.2rem;
+      background: #e2e8f0;
+    }
+
+    .patient {
+      position: absolute;
+      left: 3.2rem;
+      bottom: 5.3rem;
+      width: 12rem;
+      height: 5rem;
+      border: 4px solid #0f172a;
+      border-radius: 2rem;
+      background: #facc15;
+    }
+
+    .patient-head {
+      position: absolute;
+      left: 0.9rem;
+      bottom: 9.4rem;
+      width: 2.6rem;
+      height: 2.6rem;
+      border: 4px solid #0f172a;
+      border-radius: 50%;
+      background: #fdba74;
+    }
+
+    .therapist {
+      position: absolute;
+      right: 1.2rem;
+      bottom: 6.2rem;
+      width: 5rem;
+      height: 8rem;
+    }
+
+    .therapist-head {
+      position: absolute;
+      top: 0;
+      left: 1.35rem;
+      width: 2rem;
+      height: 2rem;
+      border: 4px solid #0f172a;
+      border-radius: 50%;
+      background: #fde68a;
+    }
+
+    .therapist-body {
+      position: absolute;
+      top: 1.9rem;
+      left: 0.7rem;
+      width: 3.2rem;
+      height: 4.1rem;
+      border: 4px solid #0f172a;
+      border-radius: 1rem;
+      background: #7dd3fc;
+    }
+
+    .arm {
+      position: absolute;
+      top: 2.7rem;
+      width: 2.2rem;
+      height: 0.9rem;
+      border: 4px solid #0f172a;
+      border-radius: 0.8rem;
+      background: #fdba74;
+      transform-origin: right center;
+      animation: massageTap 0.9s ease-in-out infinite;
+    }
+
+    .arm.left {
+      right: 3.4rem;
+    }
+
+    .arm.right {
+      right: 2.3rem;
+      top: 3.8rem;
+      animation-delay: 0.2s;
+    }
+
+    .steam {
+      position: absolute;
+      left: 5.2rem;
+      bottom: 11.5rem;
+      width: 0.6rem;
+      height: 2rem;
+      border-radius: 999px;
+      border: 3px solid #0f172a;
+      border-color: #0f172a transparent transparent transparent;
+      animation: steamRise 1.6s ease-in-out infinite;
+      opacity: 0.75;
+    }
+
+    .steam.s2 {
+      left: 7rem;
+      animation-delay: 0.4s;
+    }
+
+    .loading-caption {
+      position: absolute;
+      top: -0.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: "Fredoka", sans-serif;
+      font-size: 0.95rem;
+      border: 3px solid #0f172a;
+      border-radius: 999px;
+      background: #fff;
+      padding: 0.2rem 0.75rem;
+      white-space: nowrap;
+    }
+
+    body.is-loading .robot {
+      display: none;
+    }
+
+    body.is-loading .loading-scene {
+      display: block;
+    }
+
+    body.is-loading .submit-text {
+      display: none;
+    }
+
+    body.is-loading .submit-loading {
+      display: inline;
+    }
+
+    .submit-loading {
+      display: none;
+    }
+
+    .loading-dots {
+      display: inline-flex;
+      margin-left: 0.35rem;
+      gap: 0.2rem;
+      vertical-align: middle;
+    }
+
+    .loading-dots i {
+      width: 0.33rem;
+      height: 0.33rem;
+      border-radius: 999px;
+      background: #ffffff;
+      opacity: 0.35;
+      animation: dotPulse 1s ease-in-out infinite;
+      display: inline-block;
+    }
+
+    .loading-dots i:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .loading-dots i:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    .confetti {
+      animation: floaty 4.5s linear infinite;
+    }
+
+    .confetti.delay {
+      animation-delay: 1.5s;
+    }
+
+    .upload-zone {
+      position: relative;
+      padding-top: 8.5rem;
+    }
+
+    .cat-inspector {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 10.5rem;
+      height: 8rem;
+      transform: translateX(-50%);
+      pointer-events: none;
+      transition: transform 0.2s ease;
+    }
+
+    .cat-face {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 8.2rem;
+      height: 6.2rem;
+      transform: translateX(-50%);
+      border: 4px solid #0f172a;
+      border-radius: 2.2rem;
+      background: #f8b86a;
+      box-shadow: 0 6px 0 #0f172a20;
+    }
+
+    .cat-ear {
+      position: absolute;
+      top: 0.4rem;
+      width: 2rem;
+      height: 2rem;
+      border: 4px solid #0f172a;
+      background: #f8b86a;
+      transform: rotate(45deg);
+    }
+
+    .cat-ear.left {
+      left: 1.3rem;
+      border-radius: 0.4rem 0.2rem 0.2rem 0.2rem;
+    }
+
+    .cat-ear.right {
+      right: 1.3rem;
+      border-radius: 0.2rem 0.4rem 0.2rem 0.2rem;
+    }
+
+    .cat-eye {
+      position: absolute;
+      top: 2.1rem;
+      width: 1.15rem;
+      height: 1.15rem;
+      border-radius: 50%;
+      border: 3px solid #0f172a;
+      background: #fff;
+      overflow: hidden;
+      transition: transform 0.2s ease;
+    }
+
+    .cat-eye::after {
+      content: "";
+      position: absolute;
+      left: 0.34rem;
+      top: 0.28rem;
+      width: 0.36rem;
+      height: 0.36rem;
+      border-radius: 50%;
+      background: #0f172a;
+    }
+
+    .cat-eye.left { left: 2rem; }
+    .cat-eye.right { right: 2rem; }
+
+    .cat-nose {
+      position: absolute;
+      left: 50%;
+      top: 3.25rem;
+      width: 0.7rem;
+      height: 0.5rem;
+      transform: translateX(-50%);
+      border-radius: 0.6rem 0.6rem 0.8rem 0.8rem;
+      background: #ef4444;
+      border: 2px solid #0f172a;
+    }
+
+    .cat-mouth {
+      position: absolute;
+      left: 50%;
+      top: 4.15rem;
+      width: 1.6rem;
+      height: 0.9rem;
+      transform: translateX(-50%);
+      border: 3px solid #0f172a;
+      border-top: 0;
+      border-radius: 0 0 1rem 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .cat-thought {
+      position: absolute;
+      left: 50%;
+      top: -0.25rem;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      border: 3px solid #0f172a;
+      background: #fff;
+      padding: 0.15rem 0.6rem;
+      font-family: "Fredoka", sans-serif;
+      font-size: 0.78rem;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .upload-zone:hover .cat-inspector,
+    .upload-zone:focus-within .cat-inspector {
+      transform: translateX(-50%) translateY(-4px) rotate(-2deg);
+    }
+
+    .upload-zone:hover .cat-eye,
+    .upload-zone:focus-within .cat-eye {
+      transform: scaleY(0.9);
+    }
+
+    .upload-zone:hover .cat-mouth,
+    .upload-zone:focus-within .cat-mouth {
+      width: 2rem;
+      height: 1rem;
+      border-radius: 0.2rem 0.2rem 1rem 1rem;
+    }
+
+    .upload-zone:hover .cat-thought::after,
+    .upload-zone:focus-within .cat-thought::after {
+      content: "hmm...";
+    }
+
+    .upload-zone input[type="file"]:valid ~ .cat-inspector .cat-mouth {
+      width: 2.1rem;
+      height: 1rem;
+      border: 3px solid #0f172a;
+      border-bottom: 0;
+      border-radius: 1rem 1rem 0.2rem 0.2rem;
+      top: 4.35rem;
+      background: #22c55e;
+    }
+
+    .upload-zone input[type="file"]:valid ~ .cat-inspector .cat-eye::after {
+      left: 0.46rem;
+      top: 0.2rem;
+      width: 0.26rem;
+      height: 0.5rem;
+      border-radius: 0.4rem;
+    }
+
+    .upload-zone input[type="file"]:valid ~ .cat-inspector .cat-thought::after {
+      content: "nice snack!";
+    }
+
+    .cat-thought::after {
+      content: "feed me pic";
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(-2deg); }
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(8deg); }
+    }
+
+    @keyframes blink {
+      0%, 46%, 50%, 96%, 100% { transform: scaleY(1); }
+      48%, 98% { transform: scaleY(0.08); }
+    }
+
+    @keyframes floaty {
+      0% { transform: translateY(0px) rotate(0deg); opacity: 0.25; }
+      50% { transform: translateY(-18px) rotate(10deg); opacity: 0.75; }
+      100% { transform: translateY(0px) rotate(0deg); opacity: 0.25; }
+    }
+
+    @keyframes massageTap {
+      0%, 100% { transform: rotate(10deg) translateY(0px); }
+      50% { transform: rotate(18deg) translateY(5px); }
+    }
+
+    @keyframes steamRise {
+      0% { transform: translateY(0px) scaleY(1); opacity: 0.65; }
+      50% { transform: translateY(-8px) scaleY(1.1); opacity: 1; }
+      100% { transform: translateY(-16px) scaleY(0.9); opacity: 0.25; }
+    }
+
+    @keyframes dotPulse {
+      0%, 100% { transform: translateY(0); opacity: 0.35; }
+      50% { transform: translateY(-3px); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-900">
+  <main class="grid min-h-screen grid-cols-1 md:grid-cols-2">
+    <section class="relative flex items-center justify-center overflow-hidden p-8 md:p-12">
+      <div class="confetti absolute left-10 top-12 h-8 w-8 rounded-full bg-orange-300"></div>
+      <div class="confetti delay absolute bottom-16 right-10 h-6 w-6 rounded-md bg-teal-300"></div>
+
+      <div class="relative z-10 w-full max-w-lg rounded-3xl border-4 border-slate-900/10 bg-white/80 p-8 shadow-2xl backdrop-blur-sm md:p-10">
+        <h1 class="funny-title text-4xl font-bold leading-tight md:text-5xl">Goofy Vision Lab</h1>
+        <p class="mt-3 text-sm text-slate-700 md:text-base">Drop an image and let this very serious model make a very serious guess.</p>
+
+        <form method="POST" action="/predict" enctype="multipart/form-data" class="mt-8 space-y-4">
+          <div>
+            <label for="model_id" class="mb-2 block text-sm font-semibold text-slate-800">Choose Model</label>
+            <select
+              id="model_id"
+              name="model_id"
+              class="block w-full rounded-xl border-2 border-slate-300 bg-white p-3 text-sm font-medium text-slate-900"
+            >
+              {% for model in models %}
+              <option value="{{ model.id }}" {% if model.id == selected_model_id %}selected{% endif %}>{{ model.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="upload-zone">
+            <input
+              type="file"
+              name="image"
+              accept="image/png,image/jpeg,image/webp"
+              class="block w-full rounded-xl border-2 border-slate-300 bg-white p-3 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700"
+              required
+            />
+
+            <div class="cat-inspector" aria-hidden="true">
+              <div class="cat-thought"></div>
+              <div class="cat-ear left"></div>
+              <div class="cat-ear right"></div>
+              <div class="cat-face">
+                <div class="cat-eye left"></div>
+                <div class="cat-eye right"></div>
+                <div class="cat-nose"></div>
+                <div class="cat-mouth"></div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            id="predictButton"
+            class="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-teal-500"
+          >
+            <span class="submit-text">Predict This Thing</span>
+            <span class="submit-loading">Loading Model...<span class="loading-dots"><i></i><i></i><i></i></span></span>
+          </button>
+        </form>
+
+        <p class="pt-1 text-xs text-slate-600">Supported formats: png, jpg, jpeg, webp</p>
+      </div>
+    </section>
+
+    <section class="relative flex items-center justify-center p-8 md:p-12">
+      <div class="right-panel">
+        <div class="robot relative h-72 w-72 md:h-96 md:w-96">
+          <div class="robot-antenna absolute left-1/2 top-3 h-16 w-2 -translate-x-1/2 rounded-full bg-slate-800"></div>
+          <div class="absolute left-1/2 top-0 h-8 w-8 -translate-x-1/2 rounded-full border-4 border-slate-800 bg-orange-300"></div>
+
+          <div class="absolute inset-x-8 top-16 h-44 rounded-[2.5rem] border-4 border-slate-800 bg-teal-200 md:h-56"></div>
+
+          <div class="robot-eyes absolute inset-x-16 top-28 flex justify-between md:top-32">
+            <div class="h-10 w-10 rounded-full border-4 border-slate-800 bg-white"></div>
+            <div class="h-10 w-10 rounded-full border-4 border-slate-800 bg-white"></div>
+          </div>
+
+          <div class="absolute left-1/2 top-44 h-6 w-24 -translate-x-1/2 rounded-full border-4 border-slate-800 bg-white md:top-52"></div>
+
+          <div class="absolute -left-2 top-40 h-4 w-12 rounded-full bg-slate-800 md:top-48"></div>
+          <div class="absolute -right-2 top-40 h-4 w-12 rounded-full bg-slate-800 md:top-48"></div>
+
+          <div class="absolute bottom-4 left-1/2 h-14 w-44 -translate-x-1/2 rounded-2xl border-4 border-slate-800 bg-orange-200"></div>
+        </div>
+
+        <div class="loading-scene" aria-hidden="true">
+          <div class="loading-caption">Model spa session in progress...</div>
+          <div class="steam"></div>
+          <div class="steam s2"></div>
+          <div class="patient-head"></div>
+          <div class="patient"></div>
+          <div class="massage-bed"></div>
+          <div class="therapist">
+            <div class="therapist-head"></div>
+            <div class="therapist-body"></div>
+            <div class="arm left"></div>
+            <div class="arm right"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const uploadForm = document.querySelector('form[action="/predict"]');
+    if (uploadForm) {
+      uploadForm.addEventListener("submit", () => {
+        document.body.classList.add("is-loading");
+        const button = document.getElementById("predictButton");
+        if (button) {
+          button.disabled = true;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+Split code(both in notebooks folder):
+
+Split the code in 2 notebooks(more clear, to Split errors by methods)
+vanilla CNN and early experiments in "bodyCNN" notebook
+3 transfer learning methods in "transfer_learning" notebook
+---------------------------------------------------------------------
+
+added report and powerpoint presentation
+(up to you if it is valid or need changes)
+-------------------------------------------------------------------------------
+
+ALL MODELS NOW WORK SUCCESSFULLY FOR ME, PLEASE CHECK
+
+
+------------------------------------------------------------------------------
+Bugs:
+
+notebooks:
+CNN Vanilla (bodyCNN.ipynb)
+
+Critical error - Saved using the wrong API (CELL 24):
+Wrong - save_pretrained() belongs to HuggingFace, not Keras
+model.save_pretrained("./model_vanillaCNN_animals")
+processor.save_pretrained("./model_vanillaCNN_animals")  # processor was never defined
+Correct - the model is Keras
+model.save("./model_vanillaCNN_animals.keras")
+Serious error - Images are never normalized (CELL 17):
+The data_augmentation function (which included Rescaling(1./255)) is commented out and never applied. The model receives pixels in range [0, 255] instead of [0, 1], which makes training much more difficult.
+Missing this inside build_baseline_model():
+x = layers.Rescaling(1./255)(inputs)
+
+EfficientNetV2 (Transfer_learning.ipynb, CELL 2)
+
+Critical error - Complete data leakage:
+The same full directory is loaded as both train_ds and val_ds without using validation_split, so the model is validated on the exact same data it was trained on. Validation metrics are fake.
+Wrong - Both datasets point to ALL the data with no separation
+train_ds = keras.utils.image_dataset_from_directory("/content/animals10/normalized-224", ...)
+val_ds   = keras.utils.image_dataset_from_directory("/content/animals10/normalized-224", ...)
+Correct
+train_ds = keras.utils.image_dataset_from_directory(..., validation_split=0.2, subset="training", seed=42)
+val_ds   = keras.utils.image_dataset_from_directory(..., validation_split=0.2, subset="validation", seed=42)
+
+ConvNeXt (Transfer_learning.ipynb, CELL 5)
+
+Critical error - Incorrect import:
+ConvNeXtTiny is imported but then ConvNeXtBase is used, which was not imported. This causes a NameError when running.
+Wrong - Tiny is imported but Base is used
+from tensorflow.keras.applications import ConvNeXtTiny
+...
+base_model = ConvNeXtBase(...)   # NameError: ConvNeXtBase is not defined
+Correct - choose one and be consistent
+from tensorflow.keras.applications import ConvNeXtBase
+base_model = ConvNeXtBase(...)
+--------------------------------------------------------------------------------------------------
+bugs in flask code:
+
+main.py 
+
+discover_models ignore .keras-----CNN vanilla and Conv Next never appears
+
+_predict_keras normalize all models in same size------------Efficientnetv2 and convNext misspredict
+
+labels of Convnext wrong format
+
+no labels on cnnVanilla and efficientNetV2(shows label 1...)
+
+
+
+
+docker-compose.yml  miss volumes for CNN vanilla and convnext
+
+
+
+--------------------------------------------------------------------------------------------------------
+added in "transfer_learning" notebook to run both independently:
+
+!pip install tensorflow torch torchvision transformers tqdm datasets pillow
+Cell 2 → Script of download + normalization (from CELL 3 of "bodyCNN")
+
+-------------------------------------------------------------
